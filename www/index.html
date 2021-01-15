@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang='en'> 
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+        <title>Dashboard</title>
+        <style>
+            h1 {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            body {
+                padding-left: 20px;
+                display: block;
+            }
+
+            form > input {
+                width: auto;
+                height: 30px;
+                border-radius: 5px;
+                border: 1px solid black;
+                background-color: #e3f0f5;
+                cursor: pointer;
+                display: block;
+                margin: 5px 0px;
+            }
+
+            iframe.log {
+                height: 30px; 
+                width: calc(100% - 20px);
+                border: 0px;
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Example task: calc.exe</h1>
+        <form method='post' action='/' target='logframe'> 
+            <input name='taskrequest' type='submit' id='close' value='Kill Task'/>
+            <input name='taskrequest' type='submit' id='open' value='Open Task'/>
+        </form>
+        <iframe class='log' name="logframe" id="logframe"></iframe>
+    </body>
+</html>
