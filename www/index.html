@@ -4,43 +4,166 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+        <link rel='stylesheet' href='//cdn.jsdelivr.net/npm/hack-font@3.3.0/build/web/hack-subset.css'>
+        <link rel='stylesheet' type="text/css" href="/styles.css">
         <title>Dashboard</title>
-        <style>
-            h1 {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            }
-
-            body {
-                padding-left: 20px;
-                display: block;
-            }
-
-            form > input {
-                width: auto;
-                height: 30px;
-                border-radius: 5px;
-                border: 1px solid black;
-                background-color: #e3f0f5;
-                cursor: pointer;
-                display: block;
-                margin: 5px 0px;
-            }
-
-            iframe.log {
-                height: 30px; 
-                width: calc(100% - 20px);
-                border: 0px;
-                margin-top: 20px;
-            }
-        </style>
     </head>
     <body>
-        <h1>Example task: calc.exe</h1>
-        <form method='post' action='/' target='logframe'> 
-            <input name='taskrequest' type='submit' id='close' value='Kill Task'/>
-            <input name='taskrequest' type='submit' id='open' value='Open Task'/>
-        </form>
-        <iframe class='log' name="logframe" id="logframe"></iframe>
+        <iframe class='log' name="logframe" id="logframe" style='display:none!important;'></iframe>
+        <div class='cli'> 
+            <span class="cli-header">
+                <svg xmlns="http://www.w3.org/2000/svg" width="54" height="14" viewBox="0 0 54 14">
+                    <g fill="none" fill-rule="evenodd" transform="translate(1 1)">
+                        <circle cx="6" cy="6" r="6" fill="#FF5F56" stroke="#E0443E" stroke-width=".5"></circle>
+                        <circle cx="26" cy="6" r="6" fill="#FFBD2E" stroke="#DEA123" stroke-width=".5"></circle>
+                        <circle cx="46" cy="6" r="6" fill="#27C93F" stroke="#1AAB29" stroke-width=".5"></circle>
+                    </g>
+                </svg>
+            </span>
+            <div id='events' class='cli-body'>
+            </div>
+        </div>
+
+        <div class='container' id='panelContainer'> 
+
+            <form class='hidden' method='post' action='/' target='logframe'> 
+                <p>application: null</p>
+                <button name='killrequest' type='submit' id='close' value='null'>Kill task</button>
+                <button name='openrequest' type='submit' id='open' value='null'>Open task</button>
+                <button name='statusrequest' type='submit' id='open' value='null'>Task status</button>
+            </form>
+
+            <div class='createPanel'>
+                <p>New app or service</p>
+                <button class='half left small selected' id='newTask'>task</button> <button class='half right small' id='newService'>service</button>
+                <input id='arguement' type='text' placeholder="app.exe"></input>
+                <button class='small' id='confirm' >Create Panel</button>
+            </div>
+        </div>
+
     </body>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var preconnect = false;
+        var lastMessage = null;
+        var newNode = 'task';
+        var formAttributes = [
+            ["method", "post"],
+            ["action", "/"],
+            ["target", "logframe"]
+        ]
+
+        const $events = document.getElementById('events');
+        const $newTask = document.getElementById('newTask');
+        const $newService = document.getElementById('newService');
+        const $argument = document.getElementById('arguement');
+        const $confirm = document.getElementById('confirm');
+
+        $confirm.addEventListener('click', () => {
+            let valueOfField = $argument.value;
+            console.log(valueOfField)
+            let injectedHTML = 
+            `<p original='application:<br>${valueOfField}'>application:<br>${valueOfField}</p>
+             <button name='killrequest' type='submit' id='close' value='${valueOfField}'>Kill task</button>
+             <button name='openrequest' type='submit' id='open' value='${valueOfField}'>Open task</button>
+             <button name='statusrequest' type='submit' id='open' value='${valueOfField}'>Task status</button>`
+
+            let container = document.querySelector('#panelContainer');
+            let form = document.createElement('form');
+            formAttributes.forEach((array) => {
+                form.setAttribute(array[0], array[1]);;
+            });
+            form.innerHTML = injectedHTML;
+            container.prepend(form);
+
+            let panelheader = form.querySelector('p')
+            panelheader.addEventListener('mouseover', () => {
+                panelheader.innerText = 'Delete';
+                panelheader.classList.add('delete');
+            })
+            panelheader.addEventListener('mouseleave', () => {
+                panelheader.innerHTML = panelheader.getAttribute('original');
+                panelheader.classList.remove('delete');
+            })            
+            panelheader.addEventListener('click', () => {
+                form.remove();
+            })
+        })
+
+        $newTask.addEventListener('click', () => {
+            $newTask.classList.add('selected');
+            $newService.classList.remove('selected');
+            $argument.setAttribute('placeholder', 'app.exe');
+            newNode = 'task';
+        });
+
+        $newService.addEventListener('click', () => {
+            $newService.classList.add('selected');
+            $newTask.classList.remove('selected');
+            $argument.setAttribute('placeholder', 'service name');
+            newNode = 'service';
+        });
+
+        function newItem(content) {
+          const item = document.createElement('li');
+          if (content!='eof') {
+
+            let textContent = content[0];
+            let owner = content[1];
+            if (owner === 'socket-connect' && lastMessage === 'socket-connect') return; // don't duplicate these messages, dirty fix.
+
+            lastMessage = owner;
+
+            item.innerHTML = textContent;
+            item.setAttribute('owner', owner);
+            item.setAttribute('output', textContent);
+
+            if (owner!='system') {
+                item.addEventListener('mouseover', (i) => {
+                item.innerHTML = 'command executed by: ' + item.getAttribute('owner');
+                item.classList.add('preview');
+            })
+
+                item.addEventListener('mouseleave', (i) => {
+                    item.innerHTML = item.getAttribute('output');
+                    item.classList.remove('preview');
+                })
+            }
+
+          } else {
+              item.classList.add('empty-line');
+              item.setAttribute('owner', 'formatting');
+          }
+          return item;
+        };
+
+        const socket = io();
+
+        // server first, then to page.
+        socket.on('update', (data) => {
+            $events.appendChild(newItem(data));
+        });
+
+        socket.on('disconnect', (data) => {
+            $events.appendChild(newItem(['> connection was reset abruptely.', 'socket-disconnect']));
+        });
+
+        // server first, then to page.
+        socket.on('initial', (data) => { // sends only OS info twice 
+            if (!preconnect) {
+                console.log('preconnect conditions');
+                $events.appendChild(newItem(data));
+                if (data=='eof') {
+                    preconnect = true;
+                }
+            } else {
+                var newItemRequest = newItem(['> connection re-connected successfully.', 'socket-connect']); // can fail if duplicate
+                if (newItemRequest!=null) {
+                    $events.appendChild(newItemRequest);
+                }
+            }
+        });
+
+    </script>
 </html>

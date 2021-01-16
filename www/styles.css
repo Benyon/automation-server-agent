@@ -1,0 +1,161 @@
+html {
+    font-family: Hack, sans-serif!important;
+    margin: 20px 20px 20px 0px;
+}
+
+body {
+    padding-left: 20px;
+    display: block;
+    background-color: #AAB7C2;
+}
+
+h1 {
+    color: #151718;
+}
+
+.container {
+    display: block;
+}
+
+form, .createPanel {
+    width: 120px!important;
+    float: left;
+    margin: 10px;
+    padding: 0px 6px;
+}
+
+.createPanel {
+    border: 1px dashed black;
+    padding: 0px 6px;
+}
+
+form > p, .createPanel > p {
+    font-size: 12px;
+    text-align: center;
+    min-height: 30px;
+    max-height: 30px;
+    overflow: hidden;
+    cursor: pointer;
+    -webkit-text-size-adjust:none;
+    -ms-text-size-adjust:none;
+    -moz-text-size-adjust:none;
+    text-size-adjust:none;
+}
+
+* {
+    -webkit-touch-callout: none; 
+      -webkit-user-select: none;
+       -khtml-user-select: none; 
+         -moz-user-select: none; 
+          -ms-user-select: none; 
+              user-select: none;
+  }
+
+.selected {
+    border-color: #939393!important;
+    background-color: #c1c1c1!important;
+}
+
+form > button, .createPanel > button {
+    font-family: Hack, sans-serif!important;
+    width: 100%;
+    height: 30px;
+    border-radius: 5px;
+    border: 1px solid black;
+    background-color: #e3f0f5;
+    cursor: pointer;
+    display: block;
+    margin: 5px 0px;
+    padding: 0px;
+}
+
+.createPanel > input[type='text'] {
+    width: calc(100% - 8px);
+    height: 26px;
+    margin: 0px;
+    padding-left: 5px;
+    border: 1px solid black;
+}
+
+button.half {
+    width: calc(50% - 2px);
+    padding-top: 0px;
+    margin-top: 0px;
+}
+
+button.small {
+    font-size: 11px; 
+    text-align: center;
+}
+
+button.left {
+    left: 0;
+    float: left;
+}
+
+button.right {
+    right: 0;
+    float: right;
+}
+
+.hidden {
+    display:none!important;
+}
+
+.cli {
+    width: 900px;
+    height: 400px;
+    background: #151718;
+    border-radius: 5px;
+    box-shadow:rgb(21, 23, 24) 0px 20px 68px;
+    margin-top: 20px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.cli > .cli-header {
+    display: block;
+    width: 100%;
+    padding: 15px;
+}
+
+.cli > .cli-body {
+    display: block;
+    width: 100%;
+    padding-bottom: 1rem;
+}
+
+.cli-body > li, .cli-body > li > span {
+    list-style-type: none;
+    font-family: Hack, monospace!important;
+    color: #33FF00;
+    padding-left: 20px;
+    font-size: 14px;
+    cursor: default;
+}
+
+.cli-body > li > span {
+    padding: 0px;
+    margin: 0px;
+}
+
+.online {
+    color: #88ff00!important;
+}
+
+.offline {
+    color: rgba(245, 0, 0, 0.582)!important;
+}
+
+.cli-body > li.empty-line {
+    min-height: 1rem;
+}
+
+.preview {
+    opacity: 0.5;
+    color: darkgray!important;
+}
+
+input[type='submit'] {
+    font-family: Hack, sans-serif!important;
+}
