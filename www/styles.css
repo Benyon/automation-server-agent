@@ -18,10 +18,15 @@ h1 {
 }
 
 form, .createPanel {
-    width: 120px!important;
+    width: 130px!important;
     float: left;
     margin: 10px;
     padding: 0px 6px;
+}
+
+.disabled {
+    background-color: #b3b3b3 !important;
+    border-color: #393939 !important;
 }
 
 .createPanel {
@@ -42,7 +47,7 @@ form > p, .createPanel > p {
     text-size-adjust:none;
 }
 
-* {
+*:not(input) {
     -webkit-touch-callout: none; 
       -webkit-user-select: none;
        -khtml-user-select: none; 
@@ -103,7 +108,7 @@ button.right {
 }
 
 .cli {
-    width: 900px;
+    width: 915px;
     height: 400px;
     background: #151718;
     border-radius: 5px;

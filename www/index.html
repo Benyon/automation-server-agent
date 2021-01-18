@@ -37,22 +37,45 @@
                 <p>New app or service</p>
                 <button class='half left small selected' id='newTask'>task</button> <button class='half right small' id='newService'>service</button>
                 <input id='arguement' type='text' placeholder="app.exe"></input>
-                <button class='small' id='confirm' >Create Panel</button>
+                <button class='small' id='confirm'>Create Panel</button>
             </div>
         </div>
-
+        <div class='guide'>
+            <h1 style='clear: both; margin: 0px 10px; padding-top: 25px;'>Guide</h1>
+            <p style='clear: both; margin: 0px 10px;'>A quick introduction into using tasks and services</p> <br>
+            <p style='clear: both; margin: 0px 10px;'>
+                To create a new service or task panel, select<br>
+                the type you want, and input an arguement you<br>
+                would like to find the task or service with.<br> 
+                <br>
+                For tasks, you can have a simple exe name like<br>
+                <strong>calc.exe</strong>, or you can use a full path such as<br>
+                <strong>"D:/Folder/Name/Executable.exe"</strong><br>
+                <br>
+                You may find that attemping to kill a task you<br>
+                have spun up, won't work. This is because the<br>
+                launched task has a different task name in the<br>
+                task list<br>
+                <br>
+                To fix this, just add a comma to the end of your<br>
+                process name and then put the task list name<br>
+                for example you can use <strong>'calc.exe, Calculator.exe'</strong>.<br>
+                <br>
+                This would successfully open and launch calculator.<br>
+                <br>
+                To create a services panel, simply enter the name of<br>
+                of the service, i.e. <strong>BTAGService</strong> or even the full name<br>
+                such as <strong>NVDisplay.ContainerLocalSystem</strong> and the server<br>
+                will do the rest.
+            </p> 
+        </div>
     </body>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         var preconnect = false;
         var lastMessage = null;
-        var newNode = 'task';
-        var formAttributes = [
-            ["method", "post"],
-            ["action", "/"],
-            ["target", "logframe"]
-        ]
+        var cooldown = false;
 
         const $events = document.getElementById('events');
         const $newTask = document.getElementById('newTask');
@@ -60,20 +83,39 @@
         const $argument = document.getElementById('arguement');
         const $confirm = document.getElementById('confirm');
 
-        $confirm.addEventListener('click', () => {
+        function preventDefaultIsCooldown(event) {
+            if (cooldown) {
+                event.preventDefault();
+                return;
+            }
+            cooldown = true;
+            disableButtons();
+        }
+
+        $confirm.addEventListener('click', (event) => {
+
             let valueOfField = $argument.value;
-            console.log(valueOfField)
+            let typeOfPanel = $confirm.parentElement.querySelector('.selected').innerText;
+
             let injectedHTML = 
-            `<p original='application:<br>${valueOfField}'>application:<br>${valueOfField}</p>
-             <button name='killrequest' type='submit' id='close' value='${valueOfField}'>Kill task</button>
-             <button name='openrequest' type='submit' id='open' value='${valueOfField}'>Open task</button>
-             <button name='statusrequest' type='submit' id='open' value='${valueOfField}'>Task status</button>`
+             `<p original='${typeOfPanel}:<br>${valueOfField}'>${typeOfPanel}:<br>${valueOfField}</p>
+             <button name='killrequest' type='submit' id='close' value='${valueOfField}'>Kill ${typeOfPanel}</button>
+             <button name='openrequest' type='submit' id='open' value='${valueOfField}'>${typeOfPanel=='service' ? 'Start' : 'Open'} ${typeOfPanel}</button>
+             <button name='statusrequest' type='submit' id='open' value='${valueOfField}'>${typeOfPanel.charAt(0).toUpperCase() + typeOfPanel.slice(1)} status</button>`
+            
+            var formAttributes = [
+                ["method", "post"],
+                ["action", `/${typeOfPanel}`],
+                ["target", "logframe"]
+            ]
 
             let container = document.querySelector('#panelContainer');
             let form = document.createElement('form');
+
             formAttributes.forEach((array) => {
                 form.setAttribute(array[0], array[1]);;
             });
+
             form.innerHTML = injectedHTML;
             container.prepend(form);
 
@@ -89,21 +131,39 @@
             panelheader.addEventListener('click', () => {
                 form.remove();
             })
+
+            var submitButtons = form.querySelectorAll('button').forEach((element)=> {
+                if (typeOfPanel=='service' && ['killrequest', 'openrequest'].includes(element.getAttribute('name'))) {
+                    element.addEventListener('click', preventDefaultIsCooldown);
+                }
+            })
         })
 
         $newTask.addEventListener('click', () => {
             $newTask.classList.add('selected');
             $newService.classList.remove('selected');
             $argument.setAttribute('placeholder', 'app.exe');
-            newNode = 'task';
+            $argument.value="";
         });
 
         $newService.addEventListener('click', () => {
             $newService.classList.add('selected');
             $newTask.classList.remove('selected');
             $argument.setAttribute('placeholder', 'service name');
-            newNode = 'service';
+            $argument.value="";
         });
+
+        function enableButtons() {
+            document.querySelectorAll('form button.disabled').forEach((element) => {
+                element.classList.remove('disabled');
+            });
+        }
+
+        function disableButtons() {
+            document.querySelectorAll('form button:not(.disabled)').forEach((element) => {
+                element.classList.add('disabled');
+            });
+        }
 
         function newItem(content) {
           const item = document.createElement('li');
@@ -142,14 +202,22 @@
 
         // server first, then to page.
         socket.on('update', (data) => {
+
+            if (data!=null && data[1]!='system-loading') {
+                cooldown = false;
+                enableButtons();
+            }
+
             $events.appendChild(newItem(data));
         });
 
         socket.on('disconnect', (data) => {
+            cooldown = false;
+            enableButtons();
             $events.appendChild(newItem(['> connection was reset abruptely.', 'socket-disconnect']));
         });
 
-        // server first, then to page.
+
         socket.on('initial', (data) => { // sends only OS info twice 
             if (!preconnect) {
                 console.log('preconnect conditions');
